@@ -80,7 +80,7 @@ veracode_sca_scan:
 veracode_iac_secrets_scan:
   # NOTE: scans files at the commit only, not git history or built images because it uses --default.
   push:
-    trigger: false
+    trigger: true
     # Please only specify either branches_to_run or branches_to_exclude
     # Entering both will only execute branches_to_run
     # Leaving them both blank means this will never run
