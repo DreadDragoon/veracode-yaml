@@ -1,5 +1,7 @@
+
 veracode_static_scan:
   push:
+    # NOTE: off on purpose. Merge policy scans come from analysis_on_platform.
     trigger: false
     # Please only specify either branches_to_run or branches_to_exclude
     # Entering both will only execute branches_to_run
@@ -15,8 +17,7 @@ veracode_static_scan:
     target_branch:
       - default_branch
   # If the analysis_on_platform is set to true,
-  # Veracode will save your last scan result, on the default branch, as an application profile with the same name as your scanned repository on the Veracode platform. 
-  # If the analysis_on_platform is set to false, scan results will not be saved to the Veracode platform.
+  # Veracode will scan merges to the default branch, and save them as an application profile with the same name as your scanned repository on the Veracode platform.
   analysis_on_platform: true
   # If break_build_policy_findings is set to true, the build will break when findings violate the policy.
   break_build_policy_findings: false
@@ -28,8 +29,10 @@ veracode_static_scan:
   # Default policy to be used if a policy isn't already assigned to the application profile.
   policy: 'Veracode Recommended Medium + SCA'
   # If the create_code_scanning_alert is set to true, GitHub security code scanning vulnerability alerts will be created for static findings.
+  # NOTE: private repos need GitHub Code Security (GHAS).
   create_code_scanning_alert: true
   # If the create_issue is set to true, GitHub Issues will be created for static findings.
+  # NOTE: keep false to avoid issue noise.
   create_issue: false
   # If the trigger is set to true, a scan is triggered when you create an issue containing the commands value or add a comment containing the commands value to an issue.
   # Syntax to be used - COMMANDS_VALUE [branch: BRANCH_NAME]
@@ -41,19 +44,22 @@ veracode_static_scan:
 
 veracode_sca_scan:
   push:
+    # CHANGE: false -> true. Scans merges and enables scheduled SCA.
     trigger: false
     # Please only specify either branches_to_run or branches_to_exclude
     # Entering both will only execute branches_to_run
     # Leaving them both blank means this will never run
     # Dependencies rarely change per commit, so only scan the default branch on push.
-    # Feature branches are covered when a PR is opened.
+    # Feature branches are covered by the PR trigger.
     branches_to_run:
       - default_branch
     branches_to_exclude:
   pull_request:
     trigger: true
+    # CHANGE: added synchronize to catch deps added after the PR opens.
     action:
       - opened
+      - synchronize
     target_branch:
       - default_branch
   # Report-only: findings are shown but never fail the check.
@@ -72,8 +78,9 @@ veracode_sca_scan:
       - "Veracode All Scans"
 
 veracode_iac_secrets_scan:
+  # NOTE: scans files at the commit only, not git history or built images because it uses --default.
   push:
-    trigger: true
+    trigger: false
     # Please only specify either branches_to_run or branches_to_exclude
     # Entering both will only execute branches_to_run
     # Leaving them both blank means this will never run
@@ -91,7 +98,7 @@ veracode_iac_secrets_scan:
       - default_branch
   # If break_build_policy_findings is set to true, the build will break when findings violate the policy.
   break_build_policy_findings: false
-  # If the break_build_on_error is set to true, the build will break if the scan failed to complete or with an error, no libraries were found, 
+  # If the break_build_on_error is set to true, the build will break if the scan failed to complete or with an error, no libraries were found,
   # or no build system was found and the error_message will be displayed.
   break_build_on_error: false
   error_message: "Veracode IAC secrets scan faced a problem. Please contact your Veracode administrator for more information."
